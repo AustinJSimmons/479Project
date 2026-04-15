@@ -11,7 +11,7 @@ load_dotenv()
 
 # Azure config
 STORAGE_ACCOUNT_NAME = "groupdata479storage"
-STORAGE_ACCOUNT_KEY  = os.environ["AZURE_STORAGE_KEY"]
+STORAGE_ACCOUNT_KEY  = st.secrets.get("AZURE_STORAGE_KEY") or os.environ["AZURE_STORAGE_KEY"]
 CONTAINER_NAME       = "gsod-data"
 TASK2_PREFIX         = "task2_output/"
 INVALID_TEMP         = 9999.9
