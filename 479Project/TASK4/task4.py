@@ -1,13 +1,17 @@
 import io
+import os
 import pandas as pd
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
 from azure.storage.blob import BlobServiceClient
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Azure config
 STORAGE_ACCOUNT_NAME = "groupdata479storage"
-STORAGE_ACCOUNT_KEY  = "0/+rC2RZGQpeAB1ZwXd+9Flw0uaFibsUqHBC6YhhlrAE/AFLIbORx/vMVxpA6LvB4KtyT9aXeWz7+AStFSutyw=="
+STORAGE_ACCOUNT_KEY  = os.environ["AZURE_STORAGE_KEY"]
 CONTAINER_NAME       = "gsod-data"
 TASK2_PREFIX         = "task2_output/"
 INVALID_TEMP         = 9999.9
@@ -55,8 +59,9 @@ html, body,
 [data-testid="stSidebar"] * { color: #d8e8ff !important; }
 
 /* Hide Streamlit chrome */
-#MainMenu, footer, header { visibility: hidden; }
+#MainMenu, footer { visibility: hidden; }
 [data-testid="stToolbar"] { display: none; }
+[data-testid="collapsedControl"] { visibility: visible !important; }
 
 /* Glass card */
 .glass-card {

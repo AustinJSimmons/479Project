@@ -1,6 +1,10 @@
+import os
 import time
+from dotenv import load_dotenv
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, year, to_date, avg, when
+
+load_dotenv()
 
 # 1. Start Spark with Azure Packages
 spark = SparkSession.builder \
@@ -10,7 +14,7 @@ spark = SparkSession.builder \
 
 # 2. Configure Azure Blob Access
 storage_account_name = "groupdata479storage"
-storage_account_key = "0/+rC2RZGQpeAB1ZwXd+9Flw0uaFibsUqHBC6YhhlrAE/AFLIbORx/vMVxpA6LvB4KtyT9aXeWz7+AStFSutyw=="
+storage_account_key = os.environ["AZURE_STORAGE_KEY"]
 container_name = "gsod-data"
 
 spark.conf.set(

@@ -1,9 +1,13 @@
 import subprocess
 import os
 import time
+from dotenv import load_dotenv
+
+load_dotenv()
+
 # Config
 STORAGE_ACCOUNT_NAME = "groupdata479storage"
-STORAGE_ACCOUNT_KEY  = "0/+rC2RZGQpeAB1ZwXd+9Flw0uaFibsUqHBC6YhhlrAE/AFLIbORx/vMVxpA6LvB4KtyT9aXeWz7+AStFSutyw=="
+STORAGE_ACCOUNT_KEY  = os.environ["AZURE_STORAGE_KEY"]
 CONTAINER_NAME       = "gsod-data"
 
 AZURE_INPUT  = f"wasbs://{CONTAINER_NAME}@{STORAGE_ACCOUNT_NAME}.blob.core.windows.net/*/01*.csv"
