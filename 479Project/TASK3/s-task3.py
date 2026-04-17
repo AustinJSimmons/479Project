@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Config
+
 STORAGE_ACCOUNT_NAME = "groupdata479storage"
 STORAGE_ACCOUNT_KEY  = os.environ["AZURE_STORAGE_KEY"]
 CONTAINER_NAME       = "gsod-data"
@@ -41,8 +41,8 @@ def run_job():
         "-file",    REDUCER,
     ]
 
-    print("Submitting Hadoop Streaming job...")
-    print(f"Hadoop logs being written to: {LOG_FILE}")
+ 
+    print(LOG_FILE)
 
     start_time = time.time()
 
@@ -52,14 +52,13 @@ def run_job():
     elapsed = time.time() - start_time
 
     if result.returncode == 0:
-        print("\nJob completed successfully.")
-        print(f"Output written to HDFS at: {HDFS_OUTPUT}")
-        print("\n--- Results ---")
+        print(HDFS_OUTPUT)
+       
         subprocess.run(["hadoop", "fs", "-cat", f"{HDFS_OUTPUT}/part-*"],
                        stderr=subprocess.DEVNULL)
-        print(f"\nTotal execution time: {elapsed:.2f} seconds")
+        print(elapsed)
     else:
-        print(f"\nJob failed after {elapsed:.2f} seconds. Check {LOG_FILE} for details.")
+        print(elapsed)
 
 if __name__ == "__main__":
     run_job()
