@@ -1,64 +1,44 @@
 import subprocess
-import os
+import glob
 import time
-from dotenv import load_dotenv
 
-load_dotenv()
+LOG_FILE = "task3.log"
 
+csv_files = glob.glob('./data/**/*.csv', recursive=True)
 
-STORAGE_ACCOUNT_NAME = "groupdata479storage"
-STORAGE_ACCOUNT_KEY  = os.environ["AZURE_STORAGE_KEY"]
-CONTAINER_NAME       = "gsod-data"
-
-AZURE_INPUT  = f"wasbs://{CONTAINER_NAME}@{STORAGE_ACCOUNT_NAME}.blob.core.windows.net/*/01*.csv"
-HDFS_OUTPUT  = "/user/hadoop/s-task3-output"
-
-SCRIPT_DIR    = os.path.dirname(os.path.abspath(__file__))
-MAPPER        = os.path.join(SCRIPT_DIR, "s-mapper.py")
-REDUCER       = os.path.join(SCRIPT_DIR, "s-reducer.py")
-
-STREAMING_JAR = "/opt/homebrew/Cellar/hadoop/3.4.3/libexec/share/hadoop/tools/lib/hadoop-streaming-3.4.3.jar"
-AZURE_JAR     = "/opt/homebrew/Cellar/hadoop/3.4.3/libexec/share/hadoop/common/lib/hadoop-azure-3.4.3.jar"
-STORAGE_JAR   = "/opt/homebrew/Cellar/hadoop/3.4.3/libexec/share/hadoop/common/lib/azure-storage-7.0.1.jar"
-
-FS_KEY = f"fs.azure.account.key.{STORAGE_ACCOUNT_NAME}.blob.core.windows.net"
-
-LOG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "s-task3-hadoop.log")
-
-def run_job():
-    subprocess.run(["hadoop", "fs", "-rm", "-r", "-f", HDFS_OUTPUT],
-                   stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
-
-    cmd = [
-        "hadoop", "jar", STREAMING_JAR,
-        "-libjars", f"{AZURE_JAR},{STORAGE_JAR}",
-        "-D", f"{FS_KEY}={STORAGE_ACCOUNT_KEY}",
-        "-input",   AZURE_INPUT,
-        "-output",  HDFS_OUTPUT,
-        "-mapper",  "python3 s-mapper.py",
-        "-reducer", "python3 s-reducer.py",
-        "-file",    MAPPER,
-        "-file",    REDUCER,
-    ]
-
- 
-    print(LOG_FILE)
-
+if len(csv_files) != 0:
     start_time = time.time()
 
     with open(LOG_FILE, "w") as log:
-        result = subprocess.run(cmd, stderr=log, stdout=log)
 
-    elapsed = time.time() - start_time
-
-    if result.returncode == 0:
-        print(HDFS_OUTPUT)
+      
+        all_mapped = []
+        for i, csv_file in enumerate(csv_files):
+            if i % 50 == 0:
+            with open(csv_file, 'r', errors='ignore') as f:
+                map_proc = subprocess.run(
+                    ['python3', 'mapper.py'],
+                    stdin=f,
+                    capture_output=True,
+                    text=True
+                )
+                if map_proc.stdout.strip():
+                    all_mapped.extend(map_proc.stdout.strip().split('\n'))
+      
        
-        subprocess.run(["hadoop", "fs", "-cat", f"{HDFS_OUTPUT}/part-*"],
-                       stderr=subprocess.DEVNULL)
-        print(elapsed)
-    else:
-        print(elapsed)
+        sorted_output = sorted([line for line in all_mapped if line])
+        
+        reduce_proc = subprocess.run(
+            ['python3', 'reducer.py'],
+            input='\n'.join(sorted_output),
+            capture_output=True,
+            text=True
+        )
+        log.write(reduce_proc.stdout)
 
-if __name__ == "__main__":
-    run_job()
+        elapsed = time.time() - start_time
+
+        if reduce_proc.returncode == 0:
+            results = reduce_proc.stdout.strip().split('\n')
+            print(f"\nExecution time: {elapsed:.2f} seconds")
+        
